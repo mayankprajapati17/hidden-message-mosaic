@@ -30,13 +30,46 @@ export const encodeMessage = (
     }
   }
 
+  // Add a signature to mark this as an encoded image (in metadata bits)
+  // Use the first few pixels to store a simple signature
+  const signature = "STEG"; // Simple signature
+  for (let i = 0; i < signature.length; i++) {
+    const charCode = signature.charCodeAt(i);
+    // Store in alpha channel of initial pixels (unlikely to be visible)
+    encodedData[i * 4 + 3] = (encodedData[i * 4 + 3] & 0xF0) | (charCode & 0x0F);
+  }
+
   // Return a new ImageData object with the encoded message
   return new ImageData(encodedData, imageData.width, imageData.height);
+};
+
+// Function to check if an image has our steganography signature
+export const hasEncodedMessage = (imageData: ImageData): boolean => {
+  const data = imageData.data;
+  const signature = "STEG";
+  
+  // Check for our signature in the first few pixels
+  for (let i = 0; i < signature.length; i++) {
+    const charCode = signature.charCodeAt(i);
+    const storedValue = data[i * 4 + 3] & 0x0F;
+    
+    if (storedValue !== (charCode & 0x0F)) {
+      return false;
+    }
+  }
+  
+  return true;
 };
 
 // Function to decode a message from an image
 export const decodeMessage = (imageData: ImageData): string => {
   const data = imageData.data;
+  
+  // First check if this image has our signature
+  if (!hasEncodedMessage(imageData)) {
+    throw new Error("This image doesn't appear to contain an encoded message");
+  }
+  
   let binaryMessage = "";
   let byteBuffer = "";
   let nullCount = 0;

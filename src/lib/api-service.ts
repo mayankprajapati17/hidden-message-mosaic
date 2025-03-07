@@ -4,6 +4,7 @@ import {
   decodeMessage,
   imageToImageData,
   imageDataToURL,
+  hasEncodedMessage
 } from "./steganography";
 
 // Define interface for API responses
@@ -70,8 +71,18 @@ export const steganographyApi = {
     try {
       console.log("API: Decoding message from image");
       
-      // Process the image and decode the message
+      // Process the image
       const imageData = imageToImageData(request.image);
+      
+      // Check if the image has an encoded message before attempting to decode
+      if (!hasEncodedMessage(imageData)) {
+        return {
+          success: false,
+          error: "This image doesn't appear to contain a hidden message. Please try with an image that has been encoded using this tool.",
+        };
+      }
+      
+      // Proceed with decoding
       const extractedMessage = decodeMessage(imageData);
       
       if (!extractedMessage) {
