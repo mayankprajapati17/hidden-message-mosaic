@@ -1,4 +1,3 @@
-
 import { useState, useRef, ChangeEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -16,13 +15,8 @@ import {
   Image as ImageIcon,
   ArrowRight,
 } from "lucide-react";
-import {
-  encodeMessage,
-  decodeMessage,
-  imageToImageData,
-  imageDataToURL,
-  loadImageFromFile,
-} from "@/lib/steganography";
+import { loadImageFromFile } from "@/lib/steganography";
+import { steganographyApi } from "@/lib/api-service";
 
 const SteganoForm = () => {
   const [activeTab, setActiveTab] = useState<"encode" | "decode">("encode");
@@ -111,12 +105,18 @@ const SteganoForm = () => {
     setIsProcessing(true);
     
     try {
-      const imageData = imageToImageData(originalImage);
-      const encodedImageData = encodeMessage(imageData, message);
-      const encodedImageUrl = imageDataToURL(encodedImageData);
+      // Call the API service to encode the message
+      const response = await steganographyApi.encodeImage({
+        image: originalImage,
+        message: message
+      });
       
-      setProcessedImage(encodedImageUrl);
-      toast.success("Message encoded successfully");
+      if (response.success && response.data) {
+        setProcessedImage(response.data);
+        toast.success("Message encoded successfully");
+      } else {
+        toast.error(response.error || "Failed to encode message");
+      }
     } catch (error: any) {
       console.error("Error encoding message:", error);
       toast.error(error.message || "Failed to encode message");
@@ -136,18 +136,22 @@ const SteganoForm = () => {
     setIsProcessing(true);
     
     try {
-      const imageData = imageToImageData(imageToUse);
-      const extractedMessage = decodeMessage(imageData);
+      // Call the API service to decode the message
+      const response = await steganographyApi.decodeImage({
+        image: imageToUse
+      });
       
-      if (!extractedMessage) {
-        toast.error("No hidden message found in this image");
-      } else {
-        setDecodedMessage(extractedMessage);
+      if (response.success && response.data) {
+        setDecodedMessage(response.data);
         toast.success("Message decoded successfully");
+      } else {
+        setDecodedMessage("");
+        toast.error(response.error || "No hidden message found in this image");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error decoding message:", error);
       toast.error("Failed to decode message");
+      setDecodedMessage("");
     } finally {
       setIsProcessing(false);
     }
