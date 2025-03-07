@@ -1,4 +1,3 @@
-
 import { useState, useRef, ChangeEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -6,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import ImagePreview from "./ImagePreview";
 import SecretMessage from "./SecretMessage";
 import {
@@ -16,8 +14,6 @@ import {
   Unlock,
   Image as ImageIcon,
   ArrowRight,
-  Info,
-  AlertTriangle,
 } from "lucide-react";
 import { loadImageFromFile } from "@/lib/steganography";
 import { steganographyApi } from "@/lib/api-service";
@@ -30,8 +26,6 @@ const SteganoForm = () => {
   const [decodedMessage, setDecodedMessage] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [encryptionKey, setEncryptionKey] = useState("");
-  const [useEncryption, setUseEncryption] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -108,19 +102,13 @@ const SteganoForm = () => {
       return;
     }
 
-    if (useEncryption && !encryptionKey.trim()) {
-      toast.error("Please enter an encryption key");
-      return;
-    }
-
     setIsProcessing(true);
     
     try {
       // Call the API service to encode the message
       const response = await steganographyApi.encodeImage({
         image: originalImage,
-        message: message,
-        encryptionKey: useEncryption ? encryptionKey : undefined
+        message: message
       });
       
       if (response.success && response.data) {
@@ -145,29 +133,17 @@ const SteganoForm = () => {
       return;
     }
 
-    if (useEncryption && !encryptionKey.trim()) {
-      toast.error("Please enter the decryption key");
-      return;
-    }
-
     setIsProcessing(true);
     
     try {
       // Call the API service to decode the message
       const response = await steganographyApi.decodeImage({
-        image: imageToUse,
-        decryptionKey: useEncryption ? encryptionKey : undefined
+        image: imageToUse
       });
       
       if (response.success && response.data) {
         setDecodedMessage(response.data);
         toast.success("Message decoded successfully");
-        
-        // If the message was successfully decoded and it was encrypted,
-        // remember that we used encryption
-        if (response.wasEncrypted) {
-          setUseEncryption(true);
-        }
       } else {
         setDecodedMessage("");
         toast.error(response.error || "No hidden message found in this image");
@@ -205,8 +181,6 @@ const SteganoForm = () => {
     setProcessedImage(null);
     setMessage("");
     setDecodedMessage("");
-    setEncryptionKey("");
-    setUseEncryption(false);
   };
 
   return (
@@ -236,94 +210,64 @@ const SteganoForm = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <TooltipProvider>
-              {/* Image Upload Area */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div 
-                    className={`
-                      border-2 border-dashed rounded-xl p-6 transition-all
-                      ${dragActive ? "border-primary bg-primary/5" : "border-border"} 
-                      ${originalImage ? "border-green-400/50" : ""}
-                    `}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                  >
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      accept="image/*"
-                      className="hidden"
-                    />
-                    
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                      {!originalImage ? (
-                        <>
-                          <div className="rounded-full bg-primary/10 p-3">
-                            <ImageIcon className="h-6 w-6 text-primary" />
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm font-medium">Drag & drop an image here</p>
-                            <p className="text-xs text-muted-foreground">
-                              or <button onClick={handleClickUpload} className="text-primary hover:underline">browse</button> to upload
-                            </p>
-                          </div>
-                          <p className="text-xs text-muted-foreground">
-                            Supports: PNG, JPG, GIF, WEBP
-                          </p>
-                        </>
-                      ) : (
-                        <>
-                          <ImagePreview 
-                            imageUrl={originalImage ? originalImage.src : null} 
-                            altText="Original image"
-                            className="w-full"
-                          />
-                          <div className="flex justify-center space-x-2 w-full">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={handleClickUpload}
-                              className="text-xs"
-                            >
-                              <Upload className="h-3.5 w-3.5 mr-1" />
-                              Change Image
-                            </Button>
-                          </div>
-                        </>
-                      )}
+            {/* Image Upload Area */}
+            <div 
+              className={`
+                border-2 border-dashed rounded-xl p-6 transition-all
+                ${dragActive ? "border-primary bg-primary/5" : "border-border"} 
+                ${originalImage ? "border-green-400/50" : ""}
+              `}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+              
+              <div className="flex flex-col items-center justify-center space-y-4">
+                {!originalImage ? (
+                  <>
+                    <div className="rounded-full bg-primary/10 p-3">
+                      <ImageIcon className="h-6 w-6 text-primary" />
                     </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Drop your image here or click to upload</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            {/* Process Flow Diagram */}
-            {originalImage && !processedImage && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="flex items-center justify-center space-x-2 text-xs text-muted-foreground py-2"
-              >
-                <div className="flex items-center justify-center rounded-full bg-primary/10 w-6 h-6">
-                  <ImageIcon className="h-3 w-3 text-primary" />
-                </div>
-                <ArrowRight className="h-3 w-3" />
-                <div className="flex items-center justify-center rounded-full bg-primary/10 w-6 h-6">
-                  <Lock className="h-3 w-3 text-primary" />
-                </div>
-                <ArrowRight className="h-3 w-3" />
-                <div className="flex items-center justify-center rounded-full bg-muted w-6 h-6">
-                  <Download className="h-3 w-3" />
-                </div>
-              </motion.div>
-            )}
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Drag & drop an image here</p>
+                      <p className="text-xs text-muted-foreground">
+                        or <button onClick={handleClickUpload} className="text-primary hover:underline">browse</button> to upload
+                      </p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Supports: PNG, JPG, GIF, WEBP
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <ImagePreview 
+                      imageUrl={originalImage ? originalImage.src : null} 
+                      altText="Original image"
+                      className="w-full"
+                    />
+                    <div className="flex justify-center space-x-2 w-full">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleClickUpload}
+                        className="text-xs"
+                      >
+                        <Upload className="h-3.5 w-3.5 mr-1" />
+                        Change Image
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
             
             {/* Message Input */}
             {originalImage && (
@@ -336,10 +280,6 @@ const SteganoForm = () => {
                   message={message} 
                   setMessage={setMessage} 
                   mode="encode"
-                  encryptionKey={encryptionKey}
-                  setEncryptionKey={setEncryptionKey}
-                  useEncryption={useEncryption}
-                  setUseEncryption={setUseEncryption}
                 />
               </motion.div>
             )}
@@ -354,7 +294,7 @@ const SteganoForm = () => {
               >
                 <Button
                   onClick={handleEncode}
-                  disabled={isProcessing || !message.trim() || (useEncryption && !encryptionKey.trim())}
+                  disabled={isProcessing || !message.trim()}
                   className="w-full"
                 >
                   {isProcessing ? (
@@ -383,55 +323,27 @@ const SteganoForm = () => {
                       <Separator />
                       <div>
                         <Label className="text-sm font-medium">Encoded Image</Label>
-                        <div className="mt-2 relative">
-                          <ImagePreview 
-                            imageUrl={processedImage} 
-                            altText="Encoded image"
-                            className="border border-green-200/50"
-                          />
-                          
-                          {useEncryption && (
-                            <div className="absolute top-2 right-2 bg-primary/90 text-white px-2 py-1 rounded-md text-xs flex items-center">
-                              <Lock className="h-3 w-3 mr-1" />
-                              Encrypted
-                            </div>
-                          )}
-                        </div>
+                        <ImagePreview 
+                          imageUrl={processedImage} 
+                          altText="Encoded image"
+                          className="mt-2 border border-green-200/50"
+                        />
                       </div>
                       
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <motion.div
-                              initial={{ scale: 0.95, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              transition={{ delay: 0.2 }}
-                            >
-                              <Button 
-                                onClick={handleDownload} 
-                                variant="outline"
-                                className="w-full"
-                              >
-                                <Download className="h-4 w-4 mr-2" />
-                                Download Encoded Image
-                              </Button>
-                            </motion.div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p>Save the image to share with others</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      
-                      {useEncryption && (
-                        <div className="bg-muted p-3 rounded-md flex items-start space-x-3">
-                          <Info className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
-                          <div className="text-xs text-muted-foreground">
-                            <p className="font-medium mb-1">Remember your encryption key:</p>
-                            <p>You'll need to provide the same key to decode this message. If you lose it, the message can't be recovered.</p>
-                          </div>
-                        </div>
-                      )}
+                      <motion.div
+                        initial={{ scale: 0.95, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.2 }}
+                      >
+                        <Button 
+                          onClick={handleDownload} 
+                          variant="outline"
+                          className="w-full"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download Encoded Image
+                        </Button>
+                      </motion.div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -448,106 +360,74 @@ const SteganoForm = () => {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <TooltipProvider>
-              {/* Image Upload Area */}
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div 
-                    className={`
-                      border-2 border-dashed rounded-xl p-6 transition-all
-                      ${dragActive ? "border-primary bg-primary/5" : "border-border"} 
-                      ${originalImage ? "border-green-400/50" : ""}
-                    `}
-                    onDragEnter={handleDragEnter}
-                    onDragLeave={handleDragLeave}
-                    onDragOver={handleDragOver}
-                    onDrop={handleDrop}
-                  >
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handleFileChange}
-                      accept="image/*"
-                      className="hidden"
-                    />
-                    
-                    <div className="flex flex-col items-center justify-center space-y-4">
-                      {!originalImage ? (
-                        <>
-                          <div className="rounded-full bg-primary/10 p-3">
-                            <ImageIcon className="h-6 w-6 text-primary" />
-                          </div>
-                          <div className="text-center">
-                            <p className="text-sm font-medium">Drag & drop an image to decode</p>
-                            <p className="text-xs text-muted-foreground">
-                              or <button onClick={handleClickUpload} className="text-primary hover:underline">browse</button> to upload
-                            </p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <ImagePreview 
-                            imageUrl={originalImage ? originalImage.src : null} 
-                            altText="Image to decode"
-                            className="w-full"
-                          />
-                          <div className="flex justify-center space-x-2 w-full">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={handleClickUpload}
-                              className="text-xs"
-                            >
-                              <Upload className="h-3.5 w-3.5 mr-1" />
-                              Change Image
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              onClick={() => handleDecode()}
-                              disabled={isProcessing || (useEncryption && !encryptionKey.trim())}
-                              className="text-xs"
-                            >
-                              {isProcessing ? 
-                                <div className="h-3.5 w-3.5 rounded-full border-2 border-white border-r-transparent animate-spin mr-1" /> :
-                                <Unlock className="h-3.5 w-3.5 mr-1" />
-                              }
-                              Decode
-                            </Button>
-                          </div>
-                        </>
-                      )}
+            {/* Image Upload Area */}
+            <div 
+              className={`
+                border-2 border-dashed rounded-xl p-6 transition-all
+                ${dragActive ? "border-primary bg-primary/5" : "border-border"} 
+                ${originalImage ? "border-green-400/50" : ""}
+              `}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+              />
+              
+              <div className="flex flex-col items-center justify-center space-y-4">
+                {!originalImage ? (
+                  <>
+                    <div className="rounded-full bg-primary/10 p-3">
+                      <ImageIcon className="h-6 w-6 text-primary" />
                     </div>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Upload an image with a hidden message</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            
-            {/* Encryption/Decryption Key Input */}
-            {originalImage && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                transition={{ duration: 0.3 }}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <Lock className="h-4 w-4 text-muted-foreground" />
-                    <Label htmlFor="use-decryption" className="text-sm font-medium cursor-pointer">
-                      This image has an encrypted message
-                    </Label>
-                  </div>
-                  <Switch 
-                    id="use-decryption" 
-                    checked={useEncryption} 
-                    onCheckedChange={setUseEncryption}
-                  />
-                </div>
-              </motion.div>
-            )}
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Drag & drop an image to decode</p>
+                      <p className="text-xs text-muted-foreground">
+                        or <button onClick={handleClickUpload} className="text-primary hover:underline">browse</button> to upload
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <ImagePreview 
+                      imageUrl={originalImage ? originalImage.src : null} 
+                      altText="Image to decode"
+                      className="w-full"
+                    />
+                    <div className="flex justify-center space-x-2 w-full">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={handleClickUpload}
+                        className="text-xs"
+                      >
+                        <Upload className="h-3.5 w-3.5 mr-1" />
+                        Change Image
+                      </Button>
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        onClick={() => handleDecode()}
+                        disabled={isProcessing}
+                        className="text-xs"
+                      >
+                        {isProcessing ? 
+                          <div className="h-3.5 w-3.5 rounded-full border-2 border-white border-r-transparent animate-spin mr-1" /> :
+                          <Unlock className="h-3.5 w-3.5 mr-1" />
+                        }
+                        Decode
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
             
             {/* Decoded Message */}
             <AnimatePresence>
@@ -562,26 +442,10 @@ const SteganoForm = () => {
                     message={decodedMessage} 
                     setMessage={setDecodedMessage} 
                     mode="decode"
-                    encryptionKey={encryptionKey}
-                    setEncryptionKey={setEncryptionKey}
-                    useEncryption={useEncryption}
-                    setUseEncryption={setUseEncryption}
                   />
                 </motion.div>
               )}
             </AnimatePresence>
-            
-            {/* Empty State with Info */}
-            {!originalImage && (
-              <div className="bg-muted/50 p-4 rounded-xl text-center">
-                <AlertTriangle className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                <h3 className="text-sm font-medium">How to Decode Hidden Messages</h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Upload an image that contains a hidden message. If the message was encrypted, 
-                  you'll need the decryption key that was used to encode it.
-                </p>
-              </div>
-            )}
           </motion.div>
         </TabsContent>
       </Tabs>
