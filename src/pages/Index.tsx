@@ -3,87 +3,68 @@ import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import SteganoForm from "@/components/SteganoForm";
 import Footer from "@/components/Footer";
+import { MoonIcon, SunIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
 
 const Index = () => {
+  const { theme, setTheme } = useTheme();
+
   return (
-    <motion.div 
-      className="min-h-screen flex flex-col items-center bg-gradient-to-b from-white to-blue-50/20"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-    >
+    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-secondary/20 dark:from-background dark:to-background">
       <Header />
       
-      <main className="flex-1 w-full max-w-screen-xl px-4 py-6 flex flex-col items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-          className="text-center mb-10 max-w-2xl"
-        >
-          <h2 className="text-3xl font-light tracking-tight mb-2">
-            Hide your messages in plain sight
-          </h2>
-          <p className="text-muted-foreground">
-            Use steganography to conceal secret messages within ordinary images.
-            Only those who know can extract the hidden information.
-          </p>
-        </motion.div>
-        
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="w-full"
-        >
-          <div className="glass-card rounded-xl shadow-lg mx-auto">
-            <SteganoForm />
-          </div>
-        </motion.div>
-        
+      <main className="flex-1 w-full max-w-screen-xl px-4 py-6 mx-auto">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.5 }}
-          className="mt-16 max-w-2xl text-center space-y-6"
+          transition={{ duration: 0.6 }}
+          className="relative"
         >
-          <h3 className="text-xl font-medium">How it works</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 rounded-lg bg-white/80 shadow-sm">
-              <div className="bg-primary/10 rounded-full h-10 w-10 flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary font-medium">1</span>
-              </div>
-              <h4 className="font-medium mb-2">Upload</h4>
-              <p className="text-sm text-muted-foreground">
-                Upload any image that will serve as the carrier for your message
-              </p>
-            </div>
-            
-            <div className="p-4 rounded-lg bg-white/80 shadow-sm">
-              <div className="bg-primary/10 rounded-full h-10 w-10 flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary font-medium">2</span>
-              </div>
-              <h4 className="font-medium mb-2">Encode</h4>
-              <p className="text-sm text-muted-foreground">
-                Enter your secret message and encode it into the image
-              </p>
-            </div>
-            
-            <div className="p-4 rounded-lg bg-white/80 shadow-sm">
-              <div className="bg-primary/10 rounded-full h-10 w-10 flex items-center justify-center mx-auto mb-4">
-                <span className="text-primary font-medium">3</span>
-              </div>
-              <h4 className="font-medium mb-2">Share</h4>
-              <p className="text-sm text-muted-foreground">
-                Download and share the image. Only those who know can extract the message
-              </p>
-            </div>
+          {/* Theme Toggle */}
+          <div className="absolute right-4 top-4 z-10">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              className="rounded-full"
+            >
+              <SunIcon className="h-5 w-5 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
+              <MoonIcon className="absolute h-5 w-5 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="text-center mb-10 max-w-2xl mx-auto"
+          >
+            <h2 className="text-4xl font-bold tracking-tight mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Secure Message Steganography
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Hide your messages within images using advanced steganography. 
+              Your secrets remain invisible to the naked eye.
+            </p>
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="w-full"
+          >
+            <div className="glass-card dark:bg-card/30 rounded-xl shadow-lg mx-auto backdrop-blur-sm">
+              <SteganoForm />
+            </div>
+          </motion.div>
         </motion.div>
       </main>
       
       <Footer />
-    </motion.div>
+    </div>
   );
 };
 
