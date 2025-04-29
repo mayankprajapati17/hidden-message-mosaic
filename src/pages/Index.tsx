@@ -3,15 +3,20 @@ import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import SteganoForm from "@/components/SteganoForm";
 import Footer from "@/components/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const Index = () => {
   return (
     <motion.div 
-      className="min-h-screen flex flex-col items-center bg-gradient-to-b from-white to-blue-50/20"
+      className="min-h-screen flex flex-col items-center bg-gradient-to-b from-background to-primary/5 dark:from-background dark:to-primary/10"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
     >
+      <div className="absolute top-4 right-4 z-50">
+        <ThemeToggle />
+      </div>
+      
       <Header />
       
       <main className="flex-1 w-full max-w-screen-xl px-4 py-6 flex flex-col items-center">
@@ -49,7 +54,7 @@ const Index = () => {
         >
           <h3 className="text-xl font-medium">How it works</h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-4 rounded-lg bg-white/80 shadow-sm">
+            <div className="p-4 rounded-lg bg-card/80 shadow-sm">
               <div className="bg-primary/10 rounded-full h-10 w-10 flex items-center justify-center mx-auto mb-4">
                 <span className="text-primary font-medium">1</span>
               </div>
@@ -59,7 +64,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="p-4 rounded-lg bg-white/80 shadow-sm">
+            <div className="p-4 rounded-lg bg-card/80 shadow-sm">
               <div className="bg-primary/10 rounded-full h-10 w-10 flex items-center justify-center mx-auto mb-4">
                 <span className="text-primary font-medium">2</span>
               </div>
@@ -69,7 +74,7 @@ const Index = () => {
               </p>
             </div>
             
-            <div className="p-4 rounded-lg bg-white/80 shadow-sm">
+            <div className="p-4 rounded-lg bg-card/80 shadow-sm">
               <div className="bg-primary/10 rounded-full h-10 w-10 flex items-center justify-center mx-auto mb-4">
                 <span className="text-primary font-medium">3</span>
               </div>
