@@ -1,3 +1,4 @@
+
 import { useState, useRef, ChangeEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ import {
   Unlock,
   Image as ImageIcon,
   ArrowRight,
+  Copy,
 } from "lucide-react";
 import { loadImageFromFile } from "@/lib/steganography";
 import { steganographyApi } from "@/lib/api-service";
@@ -160,14 +162,23 @@ const SteganoForm = () => {
   const handleDownload = () => {
     if (!processedImage) return;
     
+    // Create a link element
     const link = document.createElement("a");
     link.href = processedImage;
-    link.download = "hidden-message.png";
+    link.download = "hidden-message.png"; // Force PNG format for lossless compression
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    toast.success("Image downloaded");
+    toast.success("Image downloaded as PNG for best compatibility");
+  };
+
+  const handleCopyToClipboard = () => {
+    if (!decodedMessage) return;
+    
+    navigator.clipboard.writeText(decodedMessage)
+      .then(() => toast.success("Message copied to clipboard"))
+      .catch(() => toast.error("Failed to copy message"));
   };
 
   const handleTabChange = (value: string) => {
@@ -243,7 +254,7 @@ const SteganoForm = () => {
                       </p>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Supports: PNG, JPG, GIF, WEBP
+                      Supports: PNG, JPG, GIF, WEBP (PNG recommended for best results)
                     </p>
                   </>
                 ) : (
@@ -323,6 +334,7 @@ const SteganoForm = () => {
                       <Separator />
                       <div>
                         <Label className="text-sm font-medium">Encoded Image</Label>
+                        <p className="text-xs text-muted-foreground mb-2">Download this image and share it with someone who has this app</p>
                         <ImagePreview 
                           imageUrl={processedImage} 
                           altText="Encoded image"
@@ -341,7 +353,7 @@ const SteganoForm = () => {
                           className="w-full"
                         >
                           <Download className="h-4 w-4 mr-2" />
-                          Download Encoded Image
+                          Download Encoded Image (PNG)
                         </Button>
                       </motion.div>
                     </motion.div>
@@ -392,6 +404,9 @@ const SteganoForm = () => {
                         or <button onClick={handleClickUpload} className="text-primary hover:underline">browse</button> to upload
                       </p>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      For best results, use images encoded with this app
+                    </p>
                   </>
                 ) : (
                   <>
@@ -437,12 +452,25 @@ const SteganoForm = () => {
                   animate={{ opacity: 1, height: "auto" }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.3 }}
+                  className="space-y-4"
                 >
                   <SecretMessage 
                     message={decodedMessage} 
                     setMessage={setDecodedMessage} 
                     mode="decode"
                   />
+                  
+                  {decodedMessage && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleCopyToClipboard}
+                      className="w-full"
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy to Clipboard
+                    </Button>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>

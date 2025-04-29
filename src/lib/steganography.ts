@@ -168,7 +168,7 @@ export const imageDataToURL = (imageData: ImageData): string => {
   canvas.height = imageData.height;
   ctx.putImageData(imageData, 0, 0);
   
-  // Get data URL
+  // Get data URL - use PNG format for lossless compression to preserve encoded data
   return canvas.toDataURL("image/png");
 };
 

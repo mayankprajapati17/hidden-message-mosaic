@@ -45,6 +45,8 @@ export const steganographyApi = {
       // Process the image and encode the message
       const imageData = imageToImageData(request.image);
       const encodedImageData = encodeMessage(imageData, request.message);
+      
+      // Always use PNG for best cross-device compatibility (lossless format)
       const encodedImageUrl = imageDataToURL(encodedImageData);
       
       return {
